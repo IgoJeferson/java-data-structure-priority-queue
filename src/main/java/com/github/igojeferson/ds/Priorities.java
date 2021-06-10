@@ -13,7 +13,7 @@ public class Priorities {
 
     public List<Student> getStudents(List<String> events) {
 
-        if (Objects.isNull(events) || events.isEmpty()) {
+        if (Objects.isNull(events) || events.isEmpty()) { // O(1) + O(1)
             return Collections.emptyList();
         }
 
@@ -23,27 +23,18 @@ public class Priorities {
                         .thenComparingInt(Student::getID)
         );
 
-        events.stream().forEach(e -> {
-            if (e.isBlank()) throw new IllegalArgumentException("Invalid event informed.");
+        // O(n log n)
+        events.stream().forEach(e -> { // -> O(n)
+            if (e.isBlank()) throw new IllegalArgumentException("Invalid event informed."); // O(1)
 
-            String[] st = e.split(" ");
+            String[] eventLine = e.split(" "); // O(n)
 
-            if ("ENTER".equals(st[EVENT_TYPE_POSITION])) {
+            if ("ENTER".equals(eventLine[EVENT_TYPE_POSITION])) { // O(1)
+                sQueue.add(parseEventToStudent(eventLine));  // O(n) + O(log n)
 
-                // The event structure will be eventType (ENTER/SERVED), NAME, CGPA, ID
-                if (st.length != 4)
-                    throw new IllegalArgumentException("Invalid parameters, you must inform Event Type, Name, CGPA and ID");
-
-                var studentID = Integer.valueOf(st[ID_POSITION]);
-
-                var studentName = st[NAME_POSITION];
-                var studantCgpa = Double.valueOf(st[CGPA_POSITION]);
-
-                sQueue.add(new Student(studentID, studentName, studantCgpa));
-
-            } else if ("SERVED".equals(st[EVENT_TYPE_POSITION])) {
+            } else if ("SERVED".equals(eventLine[EVENT_TYPE_POSITION])) { // O(1)
                 // remove the top element
-                sQueue.poll();
+                sQueue.poll();  // O(log n)
 
             } else {
                 throw new IllegalArgumentException("Invalid Event Type (Allowed values are: ENTER/SERVED).");
@@ -54,12 +45,25 @@ public class Priorities {
         // using something like return new ArrayList(sQueue) will not guarantee the expected order
         // because of this, it is necessary to call the poll on all elements
         List<Student> students = new ArrayList<>();
-        while (!sQueue.isEmpty()) {
-            students.add(sQueue.poll());
+        while (!sQueue.isEmpty()) { // O(n)
+            students.add(sQueue.poll()); // O(log n)
         }
 
         return students;
 
+    }
+
+    // O(n)
+    private Student parseEventToStudent(String[] eventLine) {
+        // The event structure will be eventType (ENTER/SERVED), NAME, CGPA, ID
+        if (eventLine.length != 4) // O(1)
+            throw new IllegalArgumentException("Invalid parameters, you must inform Event Type, Name, CGPA and ID");
+
+        var studentID = Integer.valueOf(eventLine[ID_POSITION]); // O(n)
+        var studentName = eventLine[NAME_POSITION]; // O(1)
+        var studentCgpa = Double.valueOf(eventLine[CGPA_POSITION]); // O(n)
+
+        return new Student(studentID, studentName, studentCgpa);
     }
 
 }
